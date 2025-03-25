@@ -1,4 +1,0 @@
-pool:
-  name: MeravSelfHostedPool
-  demands:
-    - agent.os -equals Windows
