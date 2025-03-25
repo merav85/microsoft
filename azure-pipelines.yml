@@ -16,8 +16,12 @@ steps:
     wmic logicaldisk get size,freespace,caption
   displayName: "Check Disk Space (Windows)"
 
-- script: |
-    echo "Forcing Azure CLI to use manually logged-in credentials"
-    az cloud set --name AzureCloud
-    az account show
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: "MeravAzureServiceConnection"
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      echo "Authenticated using Service Principal!"
+      az account show
   displayName: "Azure CLI Connectivity Test"
