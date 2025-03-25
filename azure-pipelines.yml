@@ -19,9 +19,9 @@ steps:
 - task: AzureCLI@2
   inputs:
     azureSubscription: "MeravAzureServiceConnection"
-    scriptType: bash
+    scriptType: pscore  # Use PowerShell Core
     scriptLocation: inlineScript
     inlineScript: |
-      echo "Authenticated using Service Principal!"
+      Write-Host "Checking Azure CLI connectivity..."
       az account show
   displayName: "Azure CLI Connectivity Test"
