@@ -1,0 +1,22 @@
+trigger:
+- main  # Change this to the branch you use
+
+pool:
+  name: MeravSelfHostedPool  # Uses your personal PC as the agent
+
+steps:
+- script: |
+    echo "Azure DevOps Self-Hosted Agent Test"
+    echo "Running on:"
+    systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
+  displayName: "System Info (Windows)"
+
+- script: |
+    echo "Checking Disk Space:"
+    wmic logicaldisk get size,freespace,caption
+  displayName: "Check Disk Space (Windows)"
+
+- script: |
+    echo "Testing Azure CLI Login"
+    az login --identity || echo "Azure CLI login skipped (using default credentials)"
+  displayName: "Azure CLI Connectivity Test"
