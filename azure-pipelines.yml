@@ -17,6 +17,7 @@ steps:
   displayName: "Check Disk Space (Windows)"
 
 - script: |
-    echo "Testing Azure CLI Login"
-    az login --identity || echo "Azure CLI login skipped (using default credentials)"
+    echo "Forcing Azure CLI to use manually logged-in credentials"
+    az cloud set --name AzureCloud
+    az account show
   displayName: "Azure CLI Connectivity Test"
