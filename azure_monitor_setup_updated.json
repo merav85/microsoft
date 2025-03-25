@@ -1,0 +1,177 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus",
+      "metadata": {
+        "description": "Azure region where resources will be deployed."
+      }
+    },
+    "vmName": {
+      "type": "string",
+      "defaultValue": "myVM",
+      "metadata": {
+        "description": "Name of the virtual machine to monitor."
+      }
+    },
+    "storageAccountName1": {
+      "type": "string",
+      "defaultValue": "mystorageaccount1",
+      "metadata": {
+        "description": "Name of the first storage account to monitor."
+      }
+    },
+    "storageAccountName2": {
+      "type": "string",
+      "defaultValue": "mystorageaccount2",
+      "metadata": {
+        "description": "Name of the second storage account to monitor."
+      }
+    },
+    "actionGroupEmail": {
+      "type": "string",
+      "defaultValue": "admin@example.com",
+      "metadata": {
+        "description": "Email address for alert notifications."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Insights/actionGroups",
+      "apiVersion": "2021-04-01",
+      "name": "myActionGroup",
+      "location": "global",
+      "properties": {
+        "groupShortName": "myAlerts",
+        "enabled": true,
+        "emailReceivers": [
+          {
+            "name": "adminEmail",
+            "emailAddress": "[parameters('actionGroupEmail')]",
+            "useCommonAlertSchema": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Insights/diagnosticSettings",
+      "apiVersion": "2021-05-01-preview",
+      "name": "vmDiagnosticSettings",
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]"
+      ],
+      "properties": {
+        "metrics": [
+          {
+            "category": "Percentage CPU",
+            "enabled": true
+          },
+          {
+            "category": "Network In",
+            "enabled": true
+          },
+          {
+            "category": "Network Out",
+            "enabled": true
+          }
+        ],
+        "logs": [
+          {
+            "category": "Heartbeat",
+            "enabled": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Insights/diagnosticSettings",
+      "apiVersion": "2021-05-01-preview",
+      "name": "storageDiagnosticSettings1",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName1'))]"
+      ],
+      "properties": {
+        "logs": [
+          {
+            "category": "StorageRead",
+            "enabled": true
+          },
+          {
+            "category": "StorageWrite",
+            "enabled": true
+          },
+          {
+            "category": "StorageDelete",
+            "enabled": true
+          }
+        ],
+        "metrics": [
+          {
+            "category": "Transaction",
+            "enabled": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Insights/diagnosticSettings",
+      "apiVersion": "2021-05-01-preview",
+      "name": "storageDiagnosticSettings2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName2'))]"
+      ],
+      "properties": {
+        "logs": [
+          {
+            "category": "StorageRead",
+            "enabled": true
+          },
+          {
+            "category": "StorageWrite",
+            "enabled": true
+          },
+          {
+            "category": "StorageDelete",
+            "enabled": true
+          }
+        ],
+        "metrics": [
+          {
+            "category": "Transaction",
+            "enabled": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Insights/metricAlerts",
+      "apiVersion": "2021-04-01",
+      "name": "HighCPUAlert",
+      "properties": {
+        "severity": 2,
+        "enabled": true,
+        "scopes": [
+          "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]"
+        ],
+        "criteria": {
+          "allOf": [
+            {
+              "metricName": "Percentage CPU",
+              "operator": "GreaterThan",
+              "threshold": 80,
+              "timeAggregation": "Average"
+            }
+          ]
+        },
+        "actions": [
+          {
+            "actionGroupId": "[resourceId('Microsoft.Insights/actionGroups', 'myActionGroup')]"
+          }
+        ]
+      }
+    }
+  ]
+}
