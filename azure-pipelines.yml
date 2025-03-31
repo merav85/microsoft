@@ -13,7 +13,7 @@ stages:
             inputs:
               deploymentScope: "Resource Group"
               azureResourceManagerConnection: "MeravAzureServiceConnection"
-              subscriptionId: "<YOUR_SUBSCRIPTION_ID>"
+              subscriptionId: "f53fbf7e-4f4f-48a3-8bd2-422de39c4684"
               action: "Create Or Update Resource Group"
               resourceGroupName: "MyResourceGroup"
               location: "eastus"
@@ -30,7 +30,7 @@ stages:
             inputs:
               deploymentScope: "Resource Group"
               azureResourceManagerConnection: "MeravAzureServiceConnection"
-              subscriptionId: "<YOUR_SUBSCRIPTION_ID>"
+              subscriptionId: "f53fbf7e-4f4f-48a3-8bd2-422de39c4684"
               resourceGroupName: "MyResourceGroup"
               location: "eastus"
               templateLocation: "Linked artifact"
