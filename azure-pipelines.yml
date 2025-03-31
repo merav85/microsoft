@@ -4,22 +4,6 @@ trigger:
       - main
 
 stages:
-  - stage: DeployStorageAccounts
-    displayName: "Deploy Storage Accounts"
-    jobs:
-      - job: DeployStorage
-        steps:
-          - task: AzureResourceManagerTemplateDeployment@3
-            inputs:
-              deploymentScope: "Resource Group"
-              azureResourceManagerConnection: "MeravAzureServiceConnection"
-              subscriptionId: "f53fbf7e-4f4f-48a3-8bd2-422de39c4684"
-              action: "Create Or Update Resource Group"
-              resourceGroupName: "MyResourceGroup"
-              location: "eastus"
-              templateLocation: "Linked artifact"
-              csmFile: "azure_storage_template.json"
-              overrideParameters: "storageAccountName1=mystorageaccount1 storageAccountName2=mystorageaccount2"
 
   - stage: DeployVM
     displayName: "Deploy Virtual Machine"
