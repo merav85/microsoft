@@ -1,27 +1,70 @@
 trigger:
-- main  # Change this to the branch you use
+  branches:
+    include:
+      - main
 
-pool:
-  name: MeravSelfHostedPool  # Uses your personal PC as the agent
+stages:
+  - stage: DeployStorageAccounts
+    displayName: "Deploy Storage Accounts"
+    jobs:
+      - job: DeployStorage
+        steps:
+          - task: AzureResourceManagerTemplateDeployment@3
+            inputs:
+              deploymentScope: "Resource Group"
+              azureResourceManagerConnection: "MeravAzureServiceConnection"
+              subscriptionId: "<YOUR_SUBSCRIPTION_ID>"
+              action: "Create Or Update Resource Group"
+              resourceGroupName: "MyResourceGroup"
+              location: "eastus"
+              templateLocation: "Linked artifact"
+              csmFile: "azure_storage_template.json"
+              overrideParameters: "storageAccountName1=mystorageaccount1 storageAccountName2=mystorageaccount2"
 
-steps:
-- script: |
-    echo "Azure DevOps Self-Hosted Agent Test"
-    echo "Running on:"
-    systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
-  displayName: "System Info (Windows)"
+  - stage: DeployVM
+    displayName: "Deploy Virtual Machine"
+    jobs:
+      - job: DeployVMJob
+        steps:
+          - task: AzureResourceManagerTemplateDeployment@3
+            inputs:
+              deploymentScope: "Resource Group"
+              azureResourceManagerConnection: "MeravAzureServiceConnection"
+              subscriptionId: "<YOUR_SUBSCRIPTION_ID>"
+              resourceGroupName: "MyResourceGroup"
+              location: "eastus"
+              templateLocation: "Linked artifact"
+              csmFile: "azure_vm_template.json"
+              overrideParameters: "vmName=myVM"
 
-- script: |
-    echo "Checking Disk Space:"
-    wmic logicaldisk get size,freespace,caption
-  displayName: "Check Disk Space (Windows)"
-
-- task: AzureCLI@2
-  inputs:
-    azureSubscription: "MeravAzureServiceConnection"
-    scriptType: pscore  # Use PowerShell Core
-    scriptLocation: inlineScript
-    inlineScript: |
-      Write-Host "Checking Azure CLI connectivity..."
-      az account show
-  displayName: "Azure CLI Connectivity Test"
+  - stage: CopyBlobs
+    displayName: "Copy Blobs Between Storage Accounts"
+    jobs:
+      - job: CopyBlobsJob
+        steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: "MeravAzureServiceConnection"
+              scriptType: "bash"
+              scriptLocation: "inlineScript"
+              inlineScript: |
+                az storage blob copy start-batch \
+                  --source-container mycontainer \
+                  --destination-container mycontainer \
+                  --destination-account-name mystorageaccount2 \
+                  --source-account-name mystorageaccount1 \
+                  --account-key $(storageAccountKey)
+                  
+  - stage: MonitorSetup
+    displayName: "Deploy Azure Monitor Setup"
+    jobs:
+      - job: MonitorSetupJob
+        steps:
+          - task: AzureResourceManagerTemplateDeployment@3
+            displayName: 'Deploy Azure Monitor Setup'
+            inputs:
+              deploymentScope: 'Resource Group'
+              resourceGroupName: 'MyResourceGroup'
+              location: 'eastus'
+              templateLocation: 'Linked artifact'
+              csmFile: 'path/to/azure_monitor_setup.json'
